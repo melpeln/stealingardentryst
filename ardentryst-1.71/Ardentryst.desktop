@@ -1,9 +1,9 @@
 [Desktop Entry]
+Encoding=UTF-8
 Name=Ardentryst
 Categories=Game;RolePlaying
 Comment=Fantasy sidescroller game
-Exec=/usr/games/ardentryst
+Exec=ardentryst
 Terminal=false
-Icon=/usr/share/pixmaps/ardentryst.png
+Icon=ardentryst
 Type=Application
-Keywords=RPG;Fantasy;Sidescroller

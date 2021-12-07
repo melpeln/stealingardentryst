@@ -1,3 +1,15 @@
+ardentryst (1.71-7ubuntu3) UNRELEASED; urgency=medium
+
+  * edited debian/install and debian/ardentryst.postinst
+
+ -- Joel Chang <jcchangg3@gmail.com>  Tue, 07 Dec 2021 15:29:12 +0800
+
+ardentryst (1.71-7ubuntu2) focal; urgency=medium
+
+  * Added testing.sh
+
+ -- Joel Chang <jcchangg3@gmail.com>  Tue, 07 Dec 2021 15:24:14 +0800
+
 ardentryst (1.71-7ubuntu1) focal; urgency=medium
 
   * Use debhelper 12 compat level for now (until Ubuntu has debhelper 13).

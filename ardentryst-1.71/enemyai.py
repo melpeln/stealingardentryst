@@ -20,7 +20,6 @@
 #------------------------------------------------------------------------
 
 import random, pygame, math
-from past.builtins import cmp
 
 def monster_ground_at(x, l, f=1):
     "Finds the y co-ordinate of the ground at position x. For monsters."
@@ -29,7 +28,7 @@ def monster_ground_at(x, l, f=1):
     ysense = 479
     sensing = True
     while sensing:
-        sensetile = LEVEL.map[x//40][ysense//40]
+        sensetile = LEVEL.map[x/40][ysense/40]
         if not sensetile or "NONE" in sensetile.collidetype: break
         if sensetile.collidetype == "RIGHT_INCLINATION":
             if x%40 < 40-(ysense%40):
@@ -152,7 +151,7 @@ class Monster:
         damage = [str(damage),str(damage)[1:]][curative]
         damage = str(int(round(float(damage))))
         if not damage.isdigit():
-            print("Damage was not a digit!")
+            print "Damage was not a digit!"
             return
 
         num_info = [curative]
@@ -187,7 +186,7 @@ class Monster:
         damage = [str(damage),str(damage)[1:]][curative]
         damage = str(int(round(float(damage))))
         if not damage.isdigit():
-            print("Damage was not a digit!")
+            print "Damage was not a digit!"
             return
 
         num_info = [curative]
@@ -1017,7 +1016,7 @@ class snowogre(Monster):
         damage = [str(damage),str(damage)[1:]][curative]
         damage = str(int(round(float(damage))))
         if not damage.isdigit():
-            print("Damage was not a digit!")
+            print "Damage was not a digit!"
             return
 
         num_info = [curative]
@@ -1053,7 +1052,7 @@ class snowogre(Monster):
         damage = [str(damage),str(damage)[1:]][curative]
         damage = str(int(round(float(damage))))
         if not damage.isdigit():
-            print("Damage was not a digit!")
+            print "Damage was not a digit!"
             return
 
         num_info = [curative]
@@ -1150,7 +1149,7 @@ class snowbat(Monster):
             if self.hittime:
                 self.hittime -= 1
 
-            self.a_frame = abs(((self.ticker//3)%4)-2) + 1
+            self.a_frame = abs(((self.ticker/3)%4)-2) + 1
             self.FLIPME = self.PLAYERSTATE.x > self.x
 
     def die(self):
@@ -1248,7 +1247,7 @@ class boss_radkelu(Monster):
                 langle = math.radians(ra)
                 rangle = math.radians(-ra)
 
-                if not self.ptick%3 and not (self.ptick//8)%3:
+                if not self.ptick%3 and not (self.ptick/8)%3:
                     self.f1.append([self.x - 32, self.y - 68, 6 * math.sin(langle), 6 * math.cos(langle)])
                     self.f1.append([self.x + 28, self.y - 68, 6 * math.sin(rangle), 6 * math.cos(rangle)])
 
@@ -1261,7 +1260,7 @@ class boss_radkelu(Monster):
             elif self.phase == 4:
                 self.y = min(int(self.cy + self.ptick*2), 380)
 
-                if not self.ptick%5 and not (self.ptick//20)%4:
+                if not self.ptick%5 and not (self.ptick/20)%4:
                     if self.fphase2 == 0:
                         self.f1.append([self.x - 32, self.y - 68, -5, 6])
                         self.f1.append([self.x + 28, self.y - 68,  5, 6])

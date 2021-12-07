@@ -26,3 +26,4 @@ mapping.py		usr/share/games/ardentryst
 play_level.py		usr/share/games/ardentryst
 tutorial.py		usr/share/games/ardentryst
 wordwrap.py		usr/share/games/ardentryst
+testing.sh		usr/bin

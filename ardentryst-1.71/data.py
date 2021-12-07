@@ -19,7 +19,7 @@
 #
 #------------------------------------------------------------------------
 
-import pygame, os, pickle, sys
+import pygame, os, cPickle, sys
 from item import *
 from loading_screen import *
 from helpers import logfile
@@ -28,13 +28,13 @@ def load_image(name, colorkey=None, blur = False, prefix = 'Data'):
     fullname = os.path.join(prefix, name)
     try:
         image = pygame.image.load(fullname)
-    except pygame.error as message:
-        print('Cannot load image:', fullname)
-        raise SystemExit(message)
+    except pygame.error, message:
+        print 'Cannot load image:', fullname
+        raise SystemExit, message
     if blur:
         image.set_alpha(blur, RLEACCEL)
     if colorkey is not None:
-        if colorkey == -1:
+        if colorkey is -1:
             colorkey = image.get_at((0,0))
         image.set_colorkey(colorkey, RLEACCEL)
     image = image.convert_alpha()
@@ -218,7 +218,7 @@ class Storage:
             self.dostage("Inventory image: " + image)
         for imagedata in self.animlist:
             mon, image = imagedata
-            if mon not in self.mimages: self.mimages[mon] = {}
+            if not self.mimages.has_key(mon): self.mimages[mon] = {}
             self.mimages[mon][image] = load_image(image, None, False, os.path.join("Data", "MonsterFrames", mon.lower()))
             self.dostage("Monster frame: " + mon + "/" + image)
         for mag_image_set in self.mag_sub_img_lists:
@@ -261,5 +261,5 @@ class Storage:
     def precache_levels(self):
         for x in range(len(self.levelfiles)):
             for levelfile in self.levelfiles[x]:
-                self.levels[levelfile] = pickle.load(open(os.path.join("Levels", levelfile), "rb"))
+                self.levels[levelfile] = cPickle.load(open(os.path.join("Levels", levelfile), "r"))
                 self.dostage(levelfile, 2)

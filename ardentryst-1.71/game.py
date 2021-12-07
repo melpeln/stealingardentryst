@@ -19,7 +19,7 @@
 #
 #------------------------------------------------------------------------
 
-import pygame, time, hashlib, random
+import pygame, time, md5, random
 from helpers import ge, myflip
 from pygame.locals import *
 from fade import *
@@ -179,7 +179,7 @@ class Game_Object:
             ]
 
         self.timegems = []
-        self.GID = hashlib.md5((str(random.randint(0, 9999999)).zfill(7)+time.ctime()).encode()).hexdigest()
+        self.GID = md5.new(str(random.randint(0, 9999999)).zfill(7)+time.ctime()).hexdigest()
         self.KIRI_HEIGHT = 1 # How high kiripan is levitated.
 
         #1st slide(bg,(txtlines),spch,alt.len,(prespeech,prescr,extrascr,endw),amb)

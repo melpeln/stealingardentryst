@@ -19,11 +19,9 @@
 #
 #------------------------------------------------------------------------
 
-import pygame, time, sys, random, math, os, pickle, urllib
-import enemyai, tutorial, wordwrap, magic, copy, _thread, traceback
+import pygame, time, sys, random, math, os, cPickle, urllib
+import enemyai, tutorial, wordwrap, magic, md5, copy, thread, traceback
 import level_script, item as item_module
-from functools import reduce
-from past.builtins import cmp
 from pygame.locals import *
 from fade import *
 from helpers import *
@@ -95,7 +93,7 @@ def check_quest(PLAYER, GAME):
         "17%10%collect": "Relic Collector",
         } 
 #    questlist = ["Collector1", "1.20.Slayer.Nepthene", "1.50.Slayer.Forest Arex"]
-    questlist = list(questnames.keys())
+    questlist = questnames.keys()
     questlist.sort()
 
     questlist = [questlist[-1]] + questlist[:-1]
@@ -166,7 +164,7 @@ def check_quest(PLAYER, GAME):
 
 def quest_npc(qname):
     global PLAYER, DATA
-    if qname in PLAYER.quests:
+    if PLAYER.quests.has_key(qname):
         # Quest has been started (could be finished.)
         if qname == "Collector1":
             # Anneludine Shell Collector
@@ -233,21 +231,21 @@ def uploadscore(game):
 
     data = [game.savefilename[:-4],
             str(game.playerobject.classtype),
-            pickle.dumps(game.scores).replace("\n","\\"),
+            cPickle.dumps(game.scores).replace("\n","\\"),
             str(game.playerobject.exp),
             str(game.playerobject.level),
             str(game.playerobject.questsdone()),
-            pickle.dumps(game.timegems).replace("\n","\\"),
-            pickle.dumps(wearing).replace("\n","\\"),
+            cPickle.dumps(game.timegems).replace("\n","\\"),
+            cPickle.dumps(wearing).replace("\n","\\"),
             game.shc,
             game.ac_code,
             game.GID
             ]
 
     import sha
-    sd = [data, sha.new(pickle.dumps(data)).hexdigest()]
+    sd = [data, sha.new(cPickle.dumps(data)).hexdigest()]
 
-    senddata = pickle.dumps(sd).replace("\n","/").replace(" ", "%20")
+    senddata = cPickle.dumps(sd).replace("\n","/").replace(" ", "%20")
 
     msg = urllib.urlopen("http://jordan.trudgett.com/cgi-bin/submit.py?code="+senddata).read().strip()
     return msg.split("\n")
@@ -478,7 +476,7 @@ def message_box(message, face = None, csounds = None):
         finalscreen.blit(DARKSURF, (0,0))
 
         if handpos:
-            if (tick//6)%2 and tick > 10:
+            if (tick/6)%2 and tick > 10:
                 if not handdir:
                     finalscreen.blit(DATA.images["hand.png"][0], handpos)
                 else:
@@ -807,7 +805,7 @@ def Monster_Tick(Monsters):
                         digpair = DATA.images[digit[0]+".png"]
                         dr = digpair[1]
                         rs = 18*len(digits)
-                        bx = 100 -(rs-40)//2 + int((float(rs)/(len(digits)+1)) * cd) - dr[2]//2
+                        bx = 100 -(rs-40)/2 + int((float(rs)/(len(digits)+1)) * cd) - dr[2]/2
                         bounce = 500.0/(digit[1]+5)
                         if digit[1] > 32: bounce = 0
                         by = 60 - abs(int((math.sin(digit[1]/5.0)*bounce)))
@@ -1065,7 +1063,7 @@ def Ingame_Menu(data):
         screen.blit(sbb, sbr.move(1,1))
         screen.blit(sb, sbr)
 
-        if (tick//9)%4:
+        if (tick/9)%4:
             mini_s = FONTS[13].render(ministatus, 1, (255,255,255))
             mini_r = mini_s.get_rect()
             mini_r.center = (420, 80)
@@ -1181,7 +1179,7 @@ def Ingame_Menu(data):
                 else:
                     inv_dict[e.display+" (eq.)"] = 1
                 
-            invlist = list(inv_dict.keys())
+            invlist = inv_dict.keys()
             invlist.sort()
 
             invhandpos = min(invhandpos, len(invlist)-1)
@@ -1297,10 +1295,10 @@ def Ingame_Menu(data):
                 equipment.append("#Accessories")
                 equipment += [x.display for x in player.wearing["Accessories"]]
 
-            if eqhandpos and eqhandpos >= len(equipment):
+            if eqhandpos >= len(equipment):
                 eqhandpos = len(equipment) - 1
                 eqdirection = 0
-            if eqhandpos and eqhandpos < 0:
+            if eqhandpos < 0:
                 eqhandpos = 0
                 eqdirection = 1
 
@@ -1469,7 +1467,7 @@ def Ingame_Menu(data):
             quests = check_quest(player, game)
             y = 0
             for qname, qid in quests:
-                if qid in player.quests:
+                if player.quests.has_key(qid):
                     message = player.quests[qid][1]
                     if player.quests[qid][0]:
                         col = (10, 200, 0)
@@ -1494,7 +1492,7 @@ def Ingame_Menu(data):
                 screen.blit(DATA.images["hand.png"][0], (450, 128 + 14 * handpos))
                 message = "I have not started this quest yet."
                 ministatus = quests[handpos][0] + ": Not Yet Begun"
-                if quests[handpos][1] in player.quests:
+                if player.quests.has_key(quests[handpos][1]):
                     message = player.quests[quests[handpos][1]][1]
 
                     if player.quests[quests[handpos][1]][0]:
@@ -1592,10 +1590,10 @@ def Ingame_Menu(data):
                         interface_sound("error", SOUNDBOX)
                     else:
                         interface_sound("menu-small-select", SOUNDBOX)
-                        tempgobj = pickle.load(open(os.path.join("Saves", game.savefilename),"r"))
+                        tempgobj = cPickle.load(open(os.path.join("Saves", game.savefilename),"r"))
                         os.rename(os.path.join("Saves", game.savefilename), os.path.join("Saves", renameto+".asf"))
                         tempgobj.savefilename = renameto + ".asf"
-                        pickle.dump(tempgobj, open(os.path.join("Saves", renameto+".asf"), "w"))
+                        cPickle.dump(tempgobj, open(os.path.join("Saves", renameto+".asf"), "w"))
                         game.savefilename = renameto + ".asf"
                         renaming = False
                         renameto = ""
@@ -1859,7 +1857,7 @@ def Ingame_Menu(data):
 
     dsa = 230
     darksurf.set_alpha(dsa)
-    for x in range(dsa // 30):
+    for x in range(dsa / 30):
         playscreen.set_alpha(255)
         screen.blit(playscreen, (0,0))
         screen.blit(darksurf, (0,0))
@@ -1984,7 +1982,7 @@ def check_rules(rules):
                     if safe(event):
                         exec(safe(event))
                     else:
-                        print("Unsafe event")
+                        print "Unsafe event"
                     if rule[0][0].lower() == "when":
                         rule[0][0] = "finished"
 
@@ -2024,7 +2022,7 @@ def ground_at(x, f=False):
     ysense = 479
     sensing = True
     while sensing:
-        sensetile = LEVEL.map[x//40][ysense//40]
+        sensetile = LEVEL.map[x/40][ysense/40]
         if not sensetile or "NONE" in sensetile.collidetype: break
         if sensetile.collidetype == "RIGHT_INCLINATION":
             if x%40 < 40-(ysense%40):
@@ -2225,9 +2223,9 @@ def level_intro():
     rts = Timegem_time[1]
     bts = Timegem_time[2]
 
-    yts = str(yts//60).zfill(1) + ":" + str(yts%60).zfill(2)
-    rts = str(rts//60).zfill(1) + ":" + str(rts%60).zfill(2)    
-    bts = str(bts//60).zfill(1) + ":" + str(bts%60).zfill(2)
+    yts = str(yts/60).zfill(1) + ":" + str(yts%60).zfill(2)
+    rts = str(rts/60).zfill(1) + ":" + str(rts%60).zfill(2)    
+    bts = str(bts/60).zfill(1) + ":" + str(bts%60).zfill(2)
 
     if sum(Timegem_time) > 0:
 
@@ -2297,7 +2295,7 @@ def Level_Score(enemyperc, treasureperc, seconds, sd):
     info2 = [enemyperc,
              treasureperc,
              ["100%", "200%"][sd],
-             (treasureperc+enemyperc+200)//4 +[0,100][sd],
+             (treasureperc+enemyperc+200)/4 +[0,100][sd],
              "",
              seconds]
 
@@ -2361,7 +2359,7 @@ def Level_Score(enemyperc, treasureperc, seconds, sd):
                 line_r.midright = (440, 290 + y*30)
                 SCREEN.blit(line_s, line_r)
             elif y == 5:
-                line_s = FONTS[17].render(str(line//60) + ":" + str(line%60).zfill(2), 1, (255,255,255))
+                line_s = FONTS[17].render(str(line/60) + ":" + str(line%60).zfill(2), 1, (255,255,255))
                 line_r = line_s.get_rect()
                 line_r.midright = (440, 290 + y*30)
                 SCREEN.blit(line_s, line_r)
@@ -2398,7 +2396,7 @@ def Level_Score(enemyperc, treasureperc, seconds, sd):
             line_r.midright = (440, 290 + y*30)
             SCREEN.blit(line_s, line_r)
         elif y == 5:
-            line_s = FONTS[17].render(str(line//60) + ":" + str(line%60).zfill(2), 1, (255,255,255))
+            line_s = FONTS[17].render(str(line/60) + ":" + str(line%60).zfill(2), 1, (255,255,255))
             line_r = line_s.get_rect()
             line_r.midright = (440, 290 + y*30)
             SCREEN.blit(line_s, line_r)
@@ -2428,7 +2426,7 @@ def playdemo(*args):
     demofile = args[-1]
     args = args[:-1]
     dfile = open(os.path.join("Demos", demofile), "r")
-    eventd, monsterd, playerd = pickle.load(dfile)
+    eventd, monsterd, playerd = cPickle.load(dfile)
     PLAYDEMO = True
     return playlevel(*args)
 
@@ -2658,7 +2656,7 @@ def playlevel(player, level, scripts, screen, data, fonts, soundbox, game, optio
 
     if PLAYER.obelisk_save:
         if PLAYER.obelisk_save[0] == LEVEL.name:
-            Monsters = pickle.loads(PLAYER.obelisk_save[2])[:]
+            Monsters = cPickle.loads(PLAYER.obelisk_save[2])[:]
             Objects = PLAYER.obelisk_save[3][:]
             PLAYER.obelisk_save[1].obelisk_save = PLAYER.obelisk_save[:]
             PLAYER = copy.deepcopy(PLAYER.obelisk_save[1])
@@ -2789,11 +2787,11 @@ def playlevel(player, level, scripts, screen, data, fonts, soundbox, game, optio
                         CONSOLE_VIEW.append("] "+CONSOLE_TEXT)
                         try:
                             CONSOLE_VIEW.append("&" + str(eval(CONSOLE_TEXT)))
-                        except Exception as e:
+                        except Exception, e:
                             try:
                                 exec(CONSOLE_TEXT) in globals()
                                 CONSOLE_VIEW.append("%Successful")
-                            except Exception as f:
+                            except Exception, f:
                                 CONSOLE_VIEW.append("#Couldn't evaluate because "+str(e)+".")                                
                                 CONSOLE_VIEW.append("#Couldn't execute because " + str(f) + ".")
                         CONSOLE_HIST_STAGE = 0
@@ -2818,7 +2816,7 @@ def playlevel(player, level, scripts, screen, data, fonts, soundbox, game, optio
                         pygame.event.pump()
                         pkgp = pygame.key.get_pressed()
                         if pkgp[K_LSHIFT] or pkgp[K_RSHIFT]:
-                            if keyname in uppervals:
+                            if uppervals.has_key(keyname):
                                 CONSOLE_TEXT += uppervals[keyname]
                             else:
                                 CONSOLE_TEXT += keyname.upper()
@@ -3127,7 +3125,7 @@ def playlevel(player, level, scripts, screen, data, fonts, soundbox, game, optio
                     if MonsterCount == 0:
                         MonsterCount = 1
                         Monsters = []
-                    LEVELPERCENT = Level_Score(100-(len([x for x in Monsters if not x.isdead])*100//MonsterCount), Treasures*100//TreasureCount, Time_Played, PLAYER.suddendeath)
+                    LEVELPERCENT = Level_Score(100-(len([x for x in Monsters if not x.isdead])*100/MonsterCount), Treasures*100/TreasureCount, Time_Played, PLAYER.suddendeath)
                 EOLFADE -= 12
 
             # <-
@@ -3194,7 +3192,7 @@ def playlevel(player, level, scripts, screen, data, fonts, soundbox, game, optio
             else: PLAYER.mp[0] += int(0.015 * PLAYER.mp[1]) + 1
 
         if EOLFADE is not None: continue # Ignore events if level finishing
-        if DEATHFADE != 0: continue # likewise
+        if DEATHFADE is not 0: continue # likewise
 
 
         # <-
@@ -3273,7 +3271,7 @@ def playlevel(player, level, scripts, screen, data, fonts, soundbox, game, optio
                     try:
                         if OBJECT_CLOSEST and OBJECT_CLOSEST._activateable:
                             OBJECT_CLOSEST._activate()
-                    except Exception as e:
+                    except Exception, e:
                         if OBJECT_CLOSEST and OBJECT_CLOSEST.interactive:
                             if safe(OBJECT_CLOSEST.action):
                                 exec(OBJECT_CLOSEST.action) in globals()
@@ -3561,7 +3559,7 @@ def blit_new_status_bar(surf):
     lrect.center = (300, 414)
     surf.blit(lsurf, lrect)
     # TIME
-    tsurf = FONTS[13].render(str(Time_Played//60).zfill(2)+":"+str(Time_Played%60).zfill(2), 1, (255,255,255))
+    tsurf = FONTS[13].render(str(Time_Played/60).zfill(2)+":"+str(Time_Played%60).zfill(2), 1, (255,255,255))
     trect = tsurf.get_rect()
     trect.center = (300, 458)
     surf.blit(tsurf, trect)
@@ -3654,7 +3652,7 @@ def blit_character(PLAYER, CAMERA_X, in_eq = False):
     PLAYERSURF.blit(LIMGTOBLIT, (180, 100))
     PLAYERSURF.blit(TIMGTOBLIT, (180-(TIMGRECT[2]-40)/2, 100))
 
-    if (PLAYER.nomanaicon//10) % 2:
+    if (PLAYER.nomanaicon/10) % 2:
         PLAYERSURF.blit(DATA.images["manaicon.png"][0], (190, 80))
 
     for wkey in PLAYER.wearing.keys():
@@ -4664,7 +4662,7 @@ class Character:
         self.bonuses = bonuses
 
     def isbit(self, bit):
-        if bit in self.bits:
+        if self.bits.has_key(bit):
             return self.bits[bit]
         return False
 
@@ -4725,9 +4723,9 @@ class Character:
 
         if self.breaktime == 0 and self.mbreaktime == 0:
             self.mycombotime -= 1
-            if self.chainmove[1] and self.chainmove[1] > 0:
+            if self.chainmove[1] > 0:
                 self.chainmove[1] -= 1
-            if self.chainmove[1] and self.chainmove[1] == 0:
+            if self.chainmove[1] == 0:
                 cm = self.chainmove[:]
                 self.chainmove = [None, None]
                 getattr(self, cm[0])()
@@ -4744,7 +4742,7 @@ class Character:
         self.oldcombostr = combostr
         for move in self.combo_list:
             if move[2] > self.level: continue
-            if combostr == move[0] and (toexec[1] is None or len(move[0]) > toexec[1]):
+            if combostr == move[0] and (len(move[0]) > toexec[1] or toexec[1] is None):
                 toexec = [move[1], len(move[0])]
 
         
@@ -5581,7 +5579,7 @@ class Character:
                         if "INCLINATION" in sb.collidetype:
                             self.on_ramp = True
                         
-                except Exception as e:
+                except Exception, e:
                     raise
             if self.inertia[1] > 13:
                 # Impact of land
@@ -5691,7 +5689,7 @@ class Character:
             return True
         if abs_y >= 480:
             return False
-        looktile = LEVEL.map[abs_x//40][abs_y//40]
+        looktile = LEVEL.map[abs_x/40][abs_y/40]
         if looktile:
             if looktile.collidetype == "RIGHT_INCLINATION":
                 # is a 45 degree ramp with peak at right
@@ -6085,7 +6083,7 @@ class Lever:
         self.state = 1
         self._activateable = False
         if safe(self.command):
-            _thread.start_new_thread(self.run, ())
+            thread.start_new_thread(self.run, ())
         SOUNDBOX.PlaySound("stone.ogg")
     def run(self):
         global PLAYER, EOLFADE
@@ -6126,7 +6124,7 @@ class Obelisk:
         self.state = 1
         self._activateable = False
         PLAYER.obelisk_time = FRAMEMOD
-        PLAYER.obelisk_save = [LEVEL.name, copy.deepcopy(PLAYER), pickle.dumps(copy.deepcopy(Monsters)), Objects[:], Treasures]
+        PLAYER.obelisk_save = [LEVEL.name, copy.deepcopy(PLAYER), cPickle.dumps(copy.deepcopy(Monsters)), Objects[:], Treasures]
 
         PLAYER.obelisk_save[1].inventory = PLAYER.inventory
 

@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 #------------------------------------------------------------------------
 #
 #    This file is part of Ardentryst.
@@ -20,10 +20,8 @@
 #
 #------------------------------------------------------------------------
 
-import pygame, sys, os, time, pickle, socket, _thread, traceback
-import smtplib, email, math
-from hashlib import md5, sha1
-from past.builtins import cmp
+import pygame, sys, os, time, cPickle, socket, thread, traceback
+import smtplib, email, math, sha, md5
 
 # Above, I import important Python libraries
 
@@ -678,7 +676,7 @@ def handleException(e):
     global screen, Fonts, PLAYLOCALS, SAVEDIRECTORY
     if len(e.args):
         if e.args[0] == 0: Quit()
-    print("An error has occurred. ")
+    print "An error has occurred. "
     if str(e) not in ["Don't cheat!"]:
         traceback.print_exc()
     traceback.print_exc(file = open(os.path.join(SAVEDIRECTORY, "log.txt"), "a"))
@@ -686,7 +684,7 @@ def handleException(e):
     
     screen.fill((0, 0, 0))
 
-    if "game" in PLAYLOCALS:
+    if PLAYLOCALS.has_key("game"):
         savefilename = PLAYLOCALS["game"].savefilename[:-4] + "_backup.asf"
     else:
         savefilename = ""
@@ -710,7 +708,7 @@ def handleException(e):
         y += 25
 
     if savefilename:
-        pickle.dump(PLAYLOCALS["game"], open(os.path.join(SAVEDIRECTORY, "Saves", savefilename), "wb"))
+        cPickle.dump(PLAYLOCALS["game"], open(os.path.join(SAVEDIRECTORY, "Saves", savefilename), "w"))
 
     myflip()
     while True:
@@ -775,7 +773,7 @@ def useshop(shop, game, player):
     """Visits a shop."""
     global shops, screen, Data, soundbox, Fonts, p1c
     logfile("Use shop")
-    if shop in shops:
+    if shops.has_key(shop):
         shopname = shop
         shop = shops[shop]
     else:
@@ -829,7 +827,7 @@ def useshop(shop, game, player):
                 pinvd[i.display][0] += 1
             else:
                 pinvd[i.display] = [1, i]
-        pinvdl = list(pinvd.keys())
+        pinvdl = pinvd.keys()
         pinvdl.sort()
 
         msg = msg.replace("$SHOP", shopname).replace("$COST", str(cost))
@@ -858,7 +856,7 @@ def useshop(shop, game, player):
         if Buy:
             selection = max(min(selection, len(Inventory)-1), 0)
             pic, picr = Data.images[Inventory[selection].inv_image]
-            Howmany = min(Howmany, game.silver // int(Inventory[selection].value*shop["ExchangeRate"]))
+            Howmany = min(Howmany, game.silver / int(Inventory[selection].value*shop["ExchangeRate"]))
         elif Sell:
             selection = max(min(selection, len(pinvdl)-1), 0)
             if len(pinvdl):
@@ -1227,25 +1225,23 @@ class ac:
         self.dgests = dict.fromkeys(self.cf, "")
     def cds(self):
         self.cf.sort()
-        print()
+        print
         bh = ""
-        # md5
         mym = globals()["".join([chr(x) for x in [109, 100, 53]])]
-        # sha1
-        mys = globals()["".join([chr(x) for x in [115, 104, 97, 49]])]
-        exec("".join([chr(ord(x)+1) for x in "rdke-cfdrsr\x1f<\x1fohbjkd-kn`c'nodm'!chf-chf!+\x1f!qa!(("]))
+        mys = globals()["".join([chr(x) for x in [115, 104, 97]])]
+        exec("".join([chr(ord(x)+1) for x in "rdke-cfdrsr\x1f<\x1fbOhbjkd-kn`c'nodm'!chf-chf!+\x1f!q!(("]))
         rv = 1
         for f in self.cf:
             try:
-                sh = getattr(mys(getattr(mym(open(f, "r").read()), "tsegidxeh"[::-1])()[::-1]), "tsegidxeh"[::-1])()
+                sh = getattr(mys.new(getattr(mym.new(open(f, "r").read()), "tsegidxeh"[::-1])()[::-1]), "tsegidxeh"[::-1])()
                 bh += sh
                 if self.dgests[f] != sh:
                     logfile(chr(42)+ " " + f +  ".erocs ruoy daolpu ot elba eb ton lliw uoY .elif lanigiro eht ton si "[::-1])
                     rv = len(f)^len(f)
                 
-            except Exception as e:
+            except Exception, e:
                 pass
-        return rv or cmp(len(f)^(len(f)), 0), getattr(mym(bh.encode()), "tsegidxeh"[::-1])()
+        return rv or cmp(len(f)^(len(f)), 0), getattr(mym.new(bh), "tsegidxeh"[::-1])()
 
 def initscreen(screen, font):
     """Draw the screen prior to playing. This is only useful if DEBUG == True"""
@@ -1265,7 +1261,7 @@ def initscreen(screen, font):
         ]
     for x in range(len(infolist)):
         screen.blit(font.render(infolist[x], 1, (255,255,255)), (10,10+x*lh))
-        print(infolist[x])
+        print infolist[x]
 
     myflip()
     time.sleep(2)
@@ -1291,7 +1287,7 @@ def Game_SlotMenu(gameobj = None):
             raise Exception("Do not have a file called Saves in your ~/.ardentryst directory.")
     gamelist = [x for x in os.listdir(savedir) if x.endswith(".asf")]
 
-    gamelist.sort(key=lambda x: pickle.load(open(os.path.join(SAVEDIRECTORY, "Saves", x),"rb")).startdate)
+    gamelist.sort(lambda x, y: cPickle.load(open(os.path.join(SAVEDIRECTORY, "Saves", x),"r")).startdate < cPickle.load(open(os.path.join(SAVEDIRECTORY, "Saves", y),"r")).startdate)
 
     cursor = 0
     csurf = Data.images["Menupiece.png"][0]
@@ -1316,7 +1312,7 @@ def Game_SlotMenu(gameobj = None):
             return
         title = "Resume Quest"
         try:
-            gameobj = pickle.load(open(os.path.join(SAVEDIRECTORY, "Saves", gamelist[0]),"rb"))
+            gameobj = cPickle.load(open(os.path.join(SAVEDIRECTORY, "Saves", gamelist[0]),"r"))
         except:
             raise Exception("Corruption. Delete all saves you don't need in ~/.ardentryst/Saves directory")
 
@@ -1361,8 +1357,8 @@ def Game_SlotMenu(gameobj = None):
             torender = gamelist[x]
             if gamelist[x].endswith(".asf"):
                 torender = gamelist[x][:-4]
-            gsw = Fonts[16].render(torender+["","_"][newgame and (tick//20)%2 and x == cursor and not passwordstage], 1, (255,255,255))
-            gsb = Fonts[16].render(torender+["","_"][newgame and (tick//20)%2 and x == cursor and not passwordstage], 1, (  0,  0,  0))
+            gsw = Fonts[16].render(torender+["","_"][newgame and (tick/20)%2 and x == cursor and not passwordstage], 1, (255,255,255))
+            gsb = Fonts[16].render(torender+["","_"][newgame and (tick/20)%2 and x == cursor and not passwordstage], 1, (  0,  0,  0))
             gsr = gsw.get_rect()
             gsr.midleft = (70, 100 + x * 25 - scroll_factor * 25)
             if gsr.bottom < 450:
@@ -1381,7 +1377,7 @@ def Game_SlotMenu(gameobj = None):
         hand, handr = Data.images["hand.png"]
         hand = pygame.transform.flip(hand, True, False)
 
-        handr.midright = (int(60+abs(math.sin(tick/10.0))*10.0), 100 + cursor * 25 - scroll_factor * 25)
+        handr.midright = (60+abs(math.sin(tick/10.0))*10.0, 100 + cursor * 25 - scroll_factor * 25)
         screen.blit(hand, handr)
 
         inw = Fonts[9].render("Instructions: " + instructions, 1, (255,255,255))
@@ -1493,7 +1489,7 @@ def Game_SlotMenu(gameobj = None):
                                     # passwords match
                                     inslotmenu = False
                                     gameobj.savefilename = gamelist[-1]+".asf"
-                                    gameobj.password = md5(secondpass.encode()).hexdigest()
+                                    gameobj.password = md5.new(secondpass).hexdigest()
                                     gameobj.startdate = time.time()
                                     gameobj.version = DVERSION
                                     interface_sound("menu-small-select")
@@ -1528,7 +1524,7 @@ def Game_SlotMenu(gameobj = None):
                         continue
                     if passwordstage == 1 or gameobj.password == "d41d8cd98f00b204e9800998ecf8427e": # (blank)
                         # Password just entered for loading
-                        if md5(password.encode()).hexdigest() == gameobj.password:
+                        if md5.new(password).hexdigest() == gameobj.password:
                             inslotmenu = False
                             interface_sound("menu-select")
                     elif passwordstage == 0:
@@ -1579,7 +1575,7 @@ def Game_SlotMenu(gameobj = None):
         lasttick = wait_tick(lasttick)
 
         if not newgame and not cursloaded:
-            gameobj = pickle.load(open(os.path.join(SAVEDIRECTORY, "Saves", gamelist[cursor]),"rb"))
+            gameobj = cPickle.load(open(os.path.join(SAVEDIRECTORY, "Saves", gamelist[cursor]),"r"))
             cursloaded = True
 
     pygame.key.set_repeat()
@@ -1655,7 +1651,7 @@ def choose_character(screen):
     namesurf = Fonts[14].render(NAME[CHAR], 1, (255,255,255))
     namerect = namesurf.get_rect()
     namerect.top = headrect.bottom
-    namerect.centerx = (charrect.right + 640) // 2 # Average of Charrect.right and 640
+    namerect.centerx = (charrect.right + 640) / 2 # Average of Charrect.right and 640
     namerect.move_ip(0, 10) # to get that 10px border
 
     DESCSURFS = [
@@ -1713,7 +1709,7 @@ def choose_character(screen):
 
         sc = 0
         for stat in stats:
-            statrect = pygame.Rect(0,0,int(full_length/float(maxstat) * stat),12)
+            statrect = pygame.Rect(0,0,full_length/float(maxstat) * stat,12)
             statrect.topleft = headrect.topright
             statrect.move_ip(35, 25 + sc*20)
             screen.fill((255-(255.0/maxstat)*stat*0.75,(255.0/maxstat)*stat*0.75,0), statrect.inflate(6,6))
@@ -1744,14 +1740,14 @@ def choose_character(screen):
         namesurf = Fonts[14].render(NAME[0], 1, (255,255,255))
         namerect = namesurf.get_rect()
         namerect.top = headrect.bottom
-        namerect.centerx = (charrect.right + 640) // 2 # Average of Charrect.right and 640
-        namerect.move_ip(-((640-charrect.right)//3), 10) # to get that 10px border, and move it left
+        namerect.centerx = (charrect.right + 640) / 2 # Average of Charrect.right and 640
+        namerect.move_ip(-((640-charrect.right)/3), 10) # to get that 10px border, and move it left
 
         namesurf2 = Fonts[14].render(NAME[1], 1, (255,255,255))
         namerect2 = namesurf2.get_rect()
         namerect2.top = headrect.bottom
-        namerect2.centerx = (charrect.right + 640) // 2 # Average of Charrect.right and 640
-        namerect2.move_ip(((640-charrect.right)//3), 10) # to get that 10px border, and move it right
+        namerect2.centerx = (charrect.right + 640) / 2 # Average of Charrect.right and 640
+        namerect2.move_ip(((640-charrect.right)/3), 10) # to get that 10px border, and move it right
 
         # the namesurf stuff above is a bit of a bother, but shouldn't be too slow.
 
@@ -1759,12 +1755,12 @@ def choose_character(screen):
             hand = Data.images["hand.png"][0]
             handrect = hand.get_rect()
             handrect.midleft = namerect.midright
-            handrect.move_ip(int(20+abs(math.sin(tick/10.0)*10)),0)
+            handrect.move_ip(20+abs(math.sin(tick/10.0)*10),0)
         else:
             hand = pygame.transform.flip(Data.images["hand.png"][0], True, False)
             handrect = hand.get_rect()
             handrect.midright = namerect2.midleft
-            handrect.move_ip(int(-20-abs(math.sin(tick/10.0)*10)),0)
+            handrect.move_ip(-20-abs(math.sin(tick/10.0)*10),0)
 
         screen.blit(headpic, headrect)
         screen.blit(namesurf, namerect)
@@ -1859,7 +1855,7 @@ def design_character(Game, player):
     anims = {"Walking": 8,
              "Stopped": 4}
 
-    canims = list(anims.keys())
+    canims = anims.keys()
     cframes = [Data.pframes, Data.pframes2][player.classtype]
     ca = 0
 
@@ -2034,7 +2030,7 @@ def design_character(Game, player):
 
         # Blit cursor
 
-        if (tick//8)%2:
+        if (tick/8)%2:
             CURS_SURF.set_alpha(100)
         else:
             CURS_SURF.set_alpha(60)
@@ -2052,7 +2048,7 @@ def design_character(Game, player):
                    "Luck: Increases your chance of critical hits and finding good treasures."][Cursor]
 
         screen.blit(Fonts[9].render(status, 1, (0,0,0)), (241,401))
-        if (tick//16)%3:
+        if (tick/16)%3:
             screen.blit(Fonts[9].render(status, 1, (255,255,255)), (240,400))
         else:
             screen.blit(Fonts[9].render(status, 1, (150,150,150)), (240,400))
@@ -2063,7 +2059,7 @@ def design_character(Game, player):
         PLAYERSURF.fill((255,0,255))
         char_anim = canims[int(ca)]
 
-        fa = tick//[7,13][ca]%anims[char_anim]
+        fa = tick/[7,13][ca]%anims[char_anim]
         ti, li = cframes[char_anim+str(fa+1)+".png"]
         ts, tr = ti
         ls, lr = li
@@ -2072,7 +2068,7 @@ def design_character(Game, player):
         lr.topleft = (50,100)
 
         PLAYERSURF.blit(ls, (180, 100))
-        PLAYERSURF.blit(ts, (int(180-(tr[2]-40)/2), 100))
+        PLAYERSURF.blit(ts, (180-(tr[2]-40)/2, 100))
 
         prefix = weapons[wchosen][0]
         wep = Data.Itembox.GetItem(prefix)
@@ -2197,9 +2193,9 @@ def design_character(Game, player):
         screen.blit(NAMESURF, NAMERECT).inflate(300,0)
 
         ARROWRECT.midleft = NAMERECT.midright
-        ARROWRECT.move_ip(int(20+5*math.sin(tick/5.0)),0)
+        ARROWRECT.move_ip(20+5*math.sin(tick/5.0),0)
         ARROWRECT2.midright = NAMERECT.midleft
-        ARROWRECT2.move_ip(int(-20-5*math.sin(tick/5.0)),0)
+        ARROWRECT2.move_ip(-20-5*math.sin(tick/5.0),0)
         screen.blit(ARROWSURF, ARROWRECT).inflate(20,0)
         screen.blit(ARROWSURF2, ARROWRECT2).inflate(20,0)
 
@@ -2212,7 +2208,7 @@ def design_character(Game, player):
         PLAYERSURF.fill((255,0,255))
         char_anim = canims[int(ca)]
 
-        fa = tick//[7,13][ca]%anims[char_anim]
+        fa = tick/[7,13][ca]%anims[char_anim]
         ti, li = cframes[char_anim+str(fa+1)+".png"]
         ts, tr = ti
         ls, lr = li
@@ -2221,7 +2217,7 @@ def design_character(Game, player):
         lr.topleft = (50,100)
 
         PLAYERSURF.blit(ls, (180, 100))
-        PLAYERSURF.blit(ts, (int(180-(tr[2]-40)/2), 100))
+        PLAYERSURF.blit(ts, (180-(tr[2]-40)/2, 100))
 
         prefix = weapons[wchosen][0]
         wep = Data.Itembox.GetItem(prefix)
@@ -2372,7 +2368,7 @@ def Save_intermission(game, pic, must = False, leavemus = False):
 
         y = 0
         for vmsg in ["Save the game", "Do not save the game"]:
-            if y//40 == pointer:
+            if y/40 == pointer:
                 m_s = Fonts[16].render(vmsg, 1, (255,255,255))
             else:
                 m_s = Fonts[16].render(vmsg, 1, (50,50,50))
@@ -2401,7 +2397,7 @@ def Save_intermission(game, pic, must = False, leavemus = False):
 
     saved = False
     if not pointer or must:
-        pickle.dump(game, open(os.path.join(SAVEDIRECTORY, "Saves", game.savefilename), "wb"))
+        cPickle.dump(game, open(os.path.join(SAVEDIRECTORY, "Saves", game.savefilename), "w"))
         saved = True
     fade_to_black(screen, 1)
     if saved:
@@ -2448,9 +2444,9 @@ def seeSpirit(game):
 
         glow, glow_r = Data.images["glow_texture.png"]
         glow_r.midleft = (224, 200)
-        screen.blit(glow, glow_r, Rect(int(tick*3.5%480),0,192,192))
+        screen.blit(glow, glow_r, Rect(tick*3.5%480,0,192,192))
         glow_r.midleft = (224, 200)
-        screen.blit(glow, glow_r, Rect(int(tick*3.5%480-480),0,192,192))
+        screen.blit(glow, glow_r, Rect(tick*3.5%480-480,0,192,192))
 
         face, face_r = Data.images["spiritguardian.png"]
         face_r.center = (320,200)
@@ -2461,13 +2457,13 @@ def seeSpirit(game):
 
         m_s = Fonts[16].render(vmsg, 1, (255,255,255))
         m_r = m_s.get_rect()
-        m_r.midleft = (int(320-Fonts[16].size(msg)[0]/2), 350)
+        m_r.midleft = (320-Fonts[16].size(msg)[0]/2, 350)
         screen.blit(m_s, m_r)
 
         npi, npi_r = Data.images["Next_Page_Icon.png"]
         if ready:
             blacksurf = pygame.Surface(npi_r.size)
-            npi_r.center = (320, int(400+abs(math.sin(tick/10.0)*15)))
+            npi_r.center = (320, 400+abs(math.sin(tick/10.0)*15))
             screen.blit(npi, npi_r)
             blacksurf.set_alpha(255-abs(math.sin(tick/10.0)*255))
             screen.blit(blacksurf, npi_r)
@@ -2550,7 +2546,7 @@ def handle_game(Game, loaded = False):
             for l in mapdata[w+1][1:]:
                 Game.scores[w].append(0)
                 Game.timegems[w].append(0)
-        pickle.dump(Game, open(os.path.join(SAVEDIRECTORY, "Saves", Game.savefilename), "wb"))
+        cPickle.dump(Game, open(os.path.join(SAVEDIRECTORY, "Saves", Game.savefilename), "w"))
     else:
         player = Game.playerobject
 
@@ -2696,7 +2692,7 @@ def handle_game(Game, loaded = False):
             realplacename = placename
             # Generate mark data ->
             for location in mapdata[Game.location[0]][1:]:
-                if location["type"] in markdata:
+                if markdata.has_key(location["type"]):
                     if mapdata[Game.location[0]].index(location) in Game.Accessible[Game.location[0]]:
                         mtype = markdata[location["type"]]
                         if Game.scores[Game.location[0]-1][mapdata[Game.location[0]].index(location)-1] >= 100: mtype = "Mark4.png"
@@ -2808,7 +2804,7 @@ def handle_game(Game, loaded = False):
             playerpos = temppos[:]
             ge()
 
-        if "type" in Ondata:
+        if Ondata.has_key("type"):
             if "EXIT_WORLD" in Ondata["type"]:
                 Game.location[1] = 0
                 oldpos = [None, None]
@@ -2832,7 +2828,7 @@ def handle_game(Game, loaded = False):
             if Game.ENDSCENE:
                 screen.blit(Data.images["kiripan.png"][0], (290, 81 + Game.ENDSCENE))
             elif Game.KIRI_HEIGHT:
-                screen.blit(Data.images["kiripan.png"][0], (290, int(141 - Game.KIRI_HEIGHT*60 + math.sin(tick/30.0)*6)))
+                screen.blit(Data.images["kiripan.png"][0], (290, 141 - Game.KIRI_HEIGHT*60 + math.sin(tick/30.0)*6))
             else:
                 screen.blit(Data.images["kiripan.png"][0], (290, 141))
             screen.blit(Data.images["maptop.png"][0], (0,0))
@@ -2865,7 +2861,7 @@ def handle_game(Game, loaded = False):
                 for entry in [mapdata[Game.location[0]][1:], mapdata[0][1:]][Game.location[1]==0]:
                     if entry["name"] == Ondata["up"]:
                         lookin = [Game.location[0], 0][Game.location[1] == 0]
-                        if [mapdata[Game.location[0]], mapdata[0]][Game.location[1]==0].index(entry) in Game.Accessible[lookin] or "type" in entry and entry["type"]== "EXIT_WORLD":
+                        if [mapdata[Game.location[0]], mapdata[0]][Game.location[1]==0].index(entry) in Game.Accessible[lookin] or entry.has_key("type") and entry["type"]== "EXIT_WORLD":
                             ars, ar = Data.images["nav-arrow-up.png"]
                             ar.center = playerpos[0], playerpos[1] - 48
                             screen.blit(ars, ar)
@@ -2874,7 +2870,7 @@ def handle_game(Game, loaded = False):
                 for entry in [mapdata[Game.location[0]][1:], mapdata[0][1:]][Game.location[1]==0]:
                     if entry["name"] == Ondata["down"]:
                         lookin = [Game.location[0], 0][Game.location[1] == 0]
-                        if [mapdata[Game.location[0]], mapdata[0]][Game.location[1]==0].index(entry) in Game.Accessible[lookin] or "type" in entry and entry["type"]== "EXIT_WORLD":
+                        if [mapdata[Game.location[0]], mapdata[0]][Game.location[1]==0].index(entry) in Game.Accessible[lookin] or entry.has_key("type") and entry["type"]== "EXIT_WORLD":
                             ars, ar = Data.images["nav-arrow-down.png"]
                             ar.center = playerpos[0], playerpos[1] + 48
                             screen.blit(ars, ar)
@@ -2883,7 +2879,7 @@ def handle_game(Game, loaded = False):
                 for entry in [mapdata[Game.location[0]][1:], mapdata[0][1:]][Game.location[1]==0]:
                     if entry["name"] == Ondata["left"]:
                         lookin = [Game.location[0], 0][Game.location[1] == 0]
-                        if [mapdata[Game.location[0]], mapdata[0]][Game.location[1]==0].index(entry) in Game.Accessible[lookin] or "type" in entry and entry["type"]== "EXIT_WORLD":
+                        if [mapdata[Game.location[0]], mapdata[0]][Game.location[1]==0].index(entry) in Game.Accessible[lookin] or entry.has_key("type") and entry["type"]== "EXIT_WORLD":
                             ars, ar = Data.images["nav-arrow-left.png"]
                             ar.center = playerpos[0] - 48, playerpos[1]
                             screen.blit(ars, ar)
@@ -2892,7 +2888,7 @@ def handle_game(Game, loaded = False):
                 for entry in [mapdata[Game.location[0]][1:], mapdata[0][1:]][Game.location[1]==0]:
                     if entry["name"] == Ondata["right"]:
                         lookin = [Game.location[0], 0][Game.location[1] == 0]                    
-                        if [mapdata[Game.location[0]], mapdata[0]][Game.location[1]==0].index(entry) in Game.Accessible[lookin] or "type" in entry and entry["type"]== "EXIT_WORLD":
+                        if [mapdata[Game.location[0]], mapdata[0]][Game.location[1]==0].index(entry) in Game.Accessible[lookin] or entry.has_key("type") and entry["type"]== "EXIT_WORLD":
                             ars, ar = Data.images["nav-arrow-right.png"]
                             ar.center = playerpos[0] + 48, playerpos[1]
                             screen.blit(ars, ar)
@@ -2903,7 +2899,7 @@ def handle_game(Game, loaded = False):
         menutext = Fonts[17].render(namekey("B-9") + ": Menu", 1, (255,255,255))
         menutextb = Fonts[17].render(namekey("B-9") + ": Menu", 1, (0,0,0))
         menurect = menutext.get_rect()
-        menurect.midright = (int(632+math.cos(tick/20.0)*3), int(30+math.sin(tick/20.0)*10))
+        menurect.midright = (632+math.cos(tick/20.0)*3, 30+math.sin(tick/20.0)*10)
         for x in range(-1,2):
             for y in range(-1,2):
                 screen.blit(menutextb,menurect.move(x,y))
@@ -2914,7 +2910,7 @@ def handle_game(Game, loaded = False):
         placetext = Fonts[2].render(placename, 1, (255, 255, 255))
         placetext_black = Fonts[2].render(placename, 1, (0, 0, 0))
         placerect = placetext.get_rect()
-        placerect.center = (320, int(452+math.sin(tick/20.0)*6))
+        placerect.center = (320, 452+math.sin(tick/20.0)*6)
 
         for x in range(-1, 2):
             for y in range(-1, 2):
@@ -3562,12 +3558,12 @@ def OptionsScreen(o_g_options, o_a_options, o_p_options, p1c):
         # Handle mcurs
 
         if menurect.collidepoint(mcurs) and not confirmmenu:
-            menu_select = (mcurs[1] - 200) // 29
+            menu_select = (mcurs[1] - 200) / 29
         else:
             menu_select = None
 
         if 200 <= mcurs[0] <= 640 and 90 <= mcurs[1] <= yend:
-            s_select = (mcurs[1] - 90) // 20
+            s_select = (mcurs[1] - 90) / 20
         else:
             s_select = None
 
@@ -3598,12 +3594,12 @@ def OptionsScreen(o_g_options, o_a_options, o_p_options, p1c):
             m2 = 0.1
             m3 = 0.15
 
-            cbit.blit(bws, (int((ti*m1)%640),0))
-            cbit.blit(bws, (int((ti*m1)%640-640),0))
-            cbit.blit(bws2, (int((ti*m2)%640),0))
-            cbit.blit(bws2, (int((ti*m2)%640-640),0))
-            cbit.blit(bws3, (int((ti*m3)%640),0))
-            cbit.blit(bws3, (int((ti*m3)%640-640),0))
+            cbit.blit(bws, ((ti*m1)%640,0))
+            cbit.blit(bws, ((ti*m1)%640-640,0))
+            cbit.blit(bws2, ((ti*m2)%640,0))
+            cbit.blit(bws2, ((ti*m2)%640-640,0))
+            cbit.blit(bws3, ((ti*m3)%640,0))
+            cbit.blit(bws3, ((ti*m3)%640-640,0))
 
             nscreen.blit(cbit, (0,220))
             nscreen.blit(Data.images["BWBGW.png"][0], (0, 200))
@@ -3626,9 +3622,9 @@ def OptionsScreen(o_g_options, o_a_options, o_p_options, p1c):
             mr = []
             for m in mitems:
                 mr.append(m.get_rect())
-            mr[0].midleft = (10, int(300+[0,sv][conf_select==1]))
-            mr[1].center = (320, int(300+[0,sv][conf_select==2]))
-            mr[2].midright = (630, int(300+[0,sv][conf_select==3]))
+            mr[0].midleft = (10, 300+[0,sv][conf_select==1])
+            mr[1].center = (320, 300+[0,sv][conf_select==2])
+            mr[2].midright = (630, 300+[0,sv][conf_select==3])
 
             nscreen.blit(mitems[0], mr[0])
             nscreen.blit(mitems[1], mr[1])
@@ -3753,19 +3749,19 @@ def main():
                         if x == sri + 1:
                             HZ = int(option)
     except:
-        print("Command-line option malformed and options after were not processed")
+        print "Command-line option malformed and options after were not processed"
 
     if not SLOW: fade_set_slow()
 
-    print("\n-------------------------------------------------------------------------------")
-    print((GAME_NAME + " v." + VERSION).center(79))
-    print("by Jordan Trudgett".center(79))
-    print("-------------------------------------------------------------------------------\n")
+    print "\n-------------------------------------------------------------------------------"
+    print (GAME_NAME + " v." + VERSION).center(79)
+    print "by Jordan Trudgett".center(79)
+    print "-------------------------------------------------------------------------------\n"
 
-    print("    Ardentryst Copyright (C) 2007, 2008, 2009 Jordan Trudgett")
-    print("    This program comes with ABSOLUTELY NO WARRANTY.")
-    print("    This is free software, and you are welcome to redistribute it")
-    print("    under certain conditions; for details, see the COPYING file.")
+    print "    Ardentryst Copyright (C) 2007, 2008, 2009 Jordan Trudgett"
+    print "    This program comes with ABSOLUTELY NO WARRANTY."
+    print "    This is free software, and you are welcome to redistribute it"
+    print "    under certain conditions; for details, see the COPYING file."
 
 
     logfile(GAME_NAME + " v." + VERSION)
@@ -3776,7 +3772,7 @@ def main():
 #    ACC = True
 
     if not ACC:
-        print("Your score can not be uploaded to the server because your version of Ardentryst is not the original version.")
+        print "Your score can not be uploaded to the server because your version of Ardentryst is not the original version."
 
     logfile("Configuring game settings...")
     # These are default options!
@@ -3825,12 +3821,12 @@ def main():
     # Load options from file
 
     try:
-        optionsfile = open(os.path.join(SAVEDIRECTORY, "options.dat"), "rb")
+        optionsfile = open(os.path.join(SAVEDIRECTORY, "options.dat"), "r")
 
-        graphic_o = pickle.load(optionsfile)
-        audio_o = pickle.load(optionsfile)
-        play_o = pickle.load(optionsfile)
-        controls_o = pickle.load(optionsfile)
+        graphic_o = cPickle.load(optionsfile)
+        audio_o = cPickle.load(optionsfile)
+        play_o = cPickle.load(optionsfile)
+        controls_o = cPickle.load(optionsfile)
 
         for dp in [(graphic_o, g_options), (audio_o, a_options), (play_o, p_options), (controls_o, p1c)]:
             for key in dp[0]:
@@ -3852,7 +3848,7 @@ def main():
     if SOUND:
         Conch.conchinit(HZ)
     else:
-        print("Not starting sound module")
+        print "Not starting sound module"
         
     soundbox = Conch.soundbox
 
@@ -3861,13 +3857,13 @@ def main():
 
     logfile("Soundbox successfuly created.")
 
-##     print("Fullscreen: " + str(FULLSCREENBIT))
+##     print "Fullscreen: " + str(FULLSCREENBIT)
 ##     if FULLSCREENBIT:
-##         print("You can play in a window with:")
-##         print("    python "+sys.argv[0]+" -w")
+##         print "You can play in a window with:"
+##         print "    python "+sys.argv[0]+" -w"
 ##     else:
-##         print("You can play in fullscreen with:")
-##         print("    python "+sys.argv[0]+" -f")
+##         print "You can play in fullscreen with:"
+##         print "    python "+sys.argv[0]+" -f"
 
     pygame.display.init()
     pygame.display.set_caption("Ardentryst v."+VERSION)
@@ -4135,7 +4131,7 @@ def main():
                         LIGHTNING.append([random.randint(0,1), random.randint(0,640), random.randint(0,30), LIGHTNINGCUES[len(DONELIGHTNINGCUES)-1][1]])
                 
             ticker += 1
-            sinselect = int(math.sin(ticker/20.0) * 30)
+            sinselect = math.sin(ticker/20.0) * 30
             silalpha += sildir
             if silalpha >= 600:
                 sildir = -3
@@ -4148,12 +4144,12 @@ def main():
 
 
             # Flying birds
-            screen.blit(Data.images["mbirds" + str(abs(ticker//10%6 - 3)+1) + ".png"][0], (int((ticker/1.8)%2000 - 180), int(125 + math.sin(ticker/50.0)*15)))
-            screen.blit(Data.images["mbirds" + str(abs((ticker-18)//10%6 - 3)+1) + ".png"][0], (int((ticker/1.9)%2000 - 130), int(120 + math.sin((ticker-15)/59.0)*12)))
-            screen.blit(Data.images["mbirds" + str(abs((ticker-39)//10%6 - 3)+1) + ".png"][0], (int((ticker/2)%2000 - 60), int(110 + math.sin((ticker-8)/75.0)*19)))
-            screen.blit(Data.images["mbirds" + str(abs(ticker//10%6 - 3)+1) + ".png"][0], (int((ticker/1.8)%2000 - 680), int(125 + math.sin(ticker/50.0)*15)))
-            screen.blit(Data.images["mbirds" + str(abs((ticker-18)//10%6 - 3)+1) + ".png"][0], (int((ticker/1.9)%2000 - 730), int(120 + math.sin((ticker-15)/59.0)*12)))
-            screen.blit(Data.images["mbirds" + str(abs((ticker-39)//10%6 - 3)+1) + ".png"][0], (int((ticker/2)%2000 - 860), int(110 + math.sin((ticker-8)/75.0)*19)))
+            screen.blit(Data.images["mbirds" + str(abs(ticker/10%6 - 3)+1) + ".png"][0], ((ticker/1.8)%2000 - 180, 125 + math.sin(ticker/50.0)*15))
+            screen.blit(Data.images["mbirds" + str(abs((ticker-18)/10%6 - 3)+1) + ".png"][0], ((ticker/1.9)%2000 - 130,  120 + math.sin((ticker-15)/59.0)*12))
+            screen.blit(Data.images["mbirds" + str(abs((ticker-39)/10%6 - 3)+1) + ".png"][0], ((ticker/2)%2000 - 60,  110 + math.sin((ticker-8)/75.0)*19))
+            screen.blit(Data.images["mbirds" + str(abs(ticker/10%6 - 3)+1) + ".png"][0], ((ticker/1.8)%2000 - 680, 125 + math.sin(ticker/50.0)*15))
+            screen.blit(Data.images["mbirds" + str(abs((ticker-18)/10%6 - 3)+1) + ".png"][0], ((ticker/1.9)%2000 - 730,  120 + math.sin((ticker-15)/59.0)*12))
+            screen.blit(Data.images["mbirds" + str(abs((ticker-39)/10%6 - 3)+1) + ".png"][0], ((ticker/2)%2000 - 860,  110 + math.sin((ticker-8)/75.0)*19))
 
             for x in range(len(LIGHTNING)):
                 lightning = LIGHTNING[x]
@@ -4299,7 +4295,7 @@ def main():
             if ahandy != handy:
                 ahandy = int(round((ahandy * 2 + handy)/3.0))
             if abs(ahandy-handy) < 2: ahandy = handy
-            screen.blit(Data.images["hand.png"][0], (int(150+abs(math.sin(ticker/10.0)*10)), ahandy))
+            screen.blit(Data.images["hand.png"][0], (150+abs(math.sin(ticker/10.0)*10), ahandy))
             for i in range(len(menu_texts)):
                 mprect = menupiece.get_rect()
                 mprect.midleft = (0, 243 + i * 29)
@@ -4326,7 +4322,7 @@ def main():
             ONTEXTSURFG = Fonts[16].render(ONTEXT, 1, (0,0,0))
             ONTEXTRECT = ONTEXTSURF.get_rect()
 
-            ONTEXTRECT.topleft = (25-int(ontextmov), 440)
+            ONTEXTRECT.topleft = (25-ontextmov, 440)
             screen.blit(ONTEXTSURFG, ONTEXTRECT.move(1,1))
             screen.blit(ONTEXTSURF, ONTEXTRECT)
 
@@ -4362,8 +4358,8 @@ def main():
                     mcurs = list(pygame.mouse.get_pos())
                     #check if on menu items
                     if 150 > mcurs[0] > 0 and 230 + 29 * (len(menu_items)) > mcurs[1] > 230:
-                        if activeitem[menu_items[(mcurs[1]-230) // 29]]:
-                            menu_select = (mcurs[1]-230) // 29
+                        if activeitem[menu_items[(mcurs[1]-230) / 29]]:
+                            menu_select = (mcurs[1]-230) / 29
                             handy = 218 + menu_select * 29
                             if menu_select >= len(menu_items): menu_select = -1
 
@@ -4463,11 +4459,11 @@ def main():
                         # restart display mode to windowed or fullscreen/4:3 or 16:10 depending on new options
 
                     # Save options to file
-                    optionsfile = open(os.path.join(SAVEDIRECTORY, "options.dat"), "wb")
-                    pickle.dump(g_options, optionsfile)
-                    pickle.dump(a_options, optionsfile)
-                    pickle.dump(p_options, optionsfile)
-                    pickle.dump(p1c, optionsfile)
+                    optionsfile = open(os.path.join(SAVEDIRECTORY, "options.dat"), "w")
+                    cPickle.dump(g_options, optionsfile)
+                    cPickle.dump(a_options, optionsfile)
+                    cPickle.dump(p_options, optionsfile)
+                    cPickle.dump(p1c, optionsfile)
 
                 fade_to_black(screen, 5)
                 selected = ""
@@ -4494,7 +4490,7 @@ def main():
                                 linecol = (100,255,150)
                         thisline = Fonts[8].render(line, 1, linecol)
                         thisrect = thisline.get_rect()
-                        screen.blit(thisline, (320-thisrect[2]//2, 480 - tick + x * thisrect[3]))
+                        screen.blit(thisline, (320-thisrect[2]/2, 480 - tick + x * thisrect[3]))
                         x += 1
                         if x == len(CREDITS) and 480-tick+x*thisrect[3] < 0:
                             crediting = False
@@ -4586,11 +4582,11 @@ def main():
                 selected = ""
                 activeitem = dict.fromkeys(menu_items, True)
                 p_options["MustOP"] = 0
-                optionsfile = open(os.path.join(SAVEDIRECTORY, "options.dat"), "wb")
-                pickle.dump(g_options, optionsfile)
-                pickle.dump(a_options, optionsfile)
-                pickle.dump(p_options, optionsfile)
-                pickle.dump(p1c, optionsfile)
+                optionsfile = open(os.path.join(SAVEDIRECTORY, "options.dat"), "w")
+                cPickle.dump(g_options, optionsfile)
+                cPickle.dump(a_options, optionsfile)
+                cPickle.dump(p_options, optionsfile)
+                cPickle.dump(p1c, optionsfile)
                 
             elif selected == "Code Listing":
                 listing = True
@@ -4690,7 +4686,7 @@ class Spark:
     def blit(self, surf):
 
         self.img.set_alpha(self.alpha)
-        self.imrect.center = (int(self.x), int(self.y))
+        self.imrect.center = (self.x, self.y)
         surf.blit(self.img, self.imrect)
 
         self.x += self.inertia[0]
@@ -4722,7 +4718,7 @@ if __name__ == "__main__":
         main()
     except SystemExit:
         pass
-    except Exception as e: # This catches errors
+    except Exception, e: # This catches errors
         handleException(e)
     pygame.display.quit()
     pygame.mixer.quit()
