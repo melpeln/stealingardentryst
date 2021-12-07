@@ -1,0 +1,76 @@
+ardentryst (1.71-7ubuntu1) focal; urgency=medium
+
+  * Use debhelper 12 compat level for now (until Ubuntu has debhelper 13).
+
+ -- Logan Rosen <logan@ubuntu.com>  Sun, 19 Apr 2020 19:31:38 -0400
+
+ardentryst (1.71-7) unstable; urgency=medium
+
+  * Team upload.
+  * Port to Python 3. (Closes: #912481, #936148, #953852)
+  * Update packaging to depend on and use Python 3.
+  * Update debhelper compat level to 13.
+  * Update Standards-Version to 4.5.0:
+    - Declare that d/rules does not require root
+  * Add keywords to desktop file.
+
+ -- Reiner Herrmann <reiner@reiner-h.de>  Sun, 19 Apr 2020 14:16:40 +0200
+
+ardentryst (1.71-6) unstable; urgency=medium
+
+  * Team upload.
+  * Switch to compat level 11.
+  * Declare compliance with Debian Policy 4.1.4.
+  * Move the package to Git and salsa.debian.org.
+  * Add dh-python to Build-Depends.
+
+ -- Markus Koschany <apo@debian.org>  Wed, 16 May 2018 14:45:01 +0200
+
+ardentryst (1.71-5) unstable; urgency=low
+
+  [ Evgeni Golov ]
+  * Correct Vcs-* URLs to point to anonscm.debian.org
+
+  [ Vincent Cheng ]
+  * Replace depends on ttf-freefont with fonts-freefont-ttf. (Closes: #738218)
+  * Update my email address.
+  * Update homepage.
+  * Update Standards version to 3.9.5, no changes required.
+
+ -- Vincent Cheng <vcheng@debian.org>  Wed, 15 Jan 2014 18:49:05 -0800
+
+ardentryst (1.71-4) unstable; urgency=low
+
+  * Further clarify data attribution in debian/copyright with input from
+    upstream author (see #636882 for more details).
+  * Update Format header in debian/copyright to latest DEP-5 revision.
+  * Update Standards version from 3.9.2 to 3.9.3, no changes required.
+  * Update debhelper compatibility level from 8 to 9.
+
+ -- Vincent Cheng <Vincentc1208@gmail.com>  Tue, 08 May 2012 22:18:18 -0700
+
+ardentryst (1.71-3) unstable; urgency=low
+
+  * Clarify data attribution in debian/copyright. (Closes: #636882)
+
+ -- Vincent Cheng <Vincentc1208@gmail.com>  Sun, 07 Aug 2011 00:22:06 -0700
+
+ardentryst (1.71-2) unstable; urgency=low
+
+  * Change maintainer field in debian/control to:
+    Debian Games Team <pkg-games-devel@lists.alioth.debian.org>
+  * Add myself to uploaders.
+  * Add Vcs-* entries to debian/control.
+  * Transition to dh_python2.
+  * Update Standards version from 3.9.1 to 3.9.2 - no changes required.
+  * Update debhelper compatiblity level from 7 to 8.
+  * Update debian/copyright to conform to DEP-5.
+
+ -- Vincent Cheng <Vincentc1208@gmail.com>  Sat, 9 Jul 2011 20:09:34 -0700
+
+ardentryst (1.71-1) unstable; urgency=low
+
+  * Initial release (Closes: #610506, #584097)
+  * Patch Ardentryst.desktop to fix exec= and icon= paths.
+
+ -- Vincent Cheng <Vincentc1208@gmail.com>  Thu, 10 Mar 2011 12:28:52 -0800

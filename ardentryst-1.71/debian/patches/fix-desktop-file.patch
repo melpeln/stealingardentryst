@@ -1,0 +1,16 @@
+Patch to fix exec and icon paths in Ardentryst.desktop
+--- a/Ardentryst.desktop
++++ b/Ardentryst.desktop
+@@ -1,9 +1,9 @@
+ [Desktop Entry]
+-Encoding=UTF-8
+ Name=Ardentryst
+ Categories=Game;RolePlaying
+ Comment=Fantasy sidescroller game
+-Exec=ardentryst
++Exec=/usr/games/ardentryst
+ Terminal=false
+-Icon=ardentryst
++Icon=/usr/share/pixmaps/ardentryst.png
+ Type=Application
++Keywords=RPG;Fantasy;Sidescroller
